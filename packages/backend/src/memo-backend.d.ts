@@ -4,6 +4,7 @@ declare namespace NodeJS {
       NODE_ENV: 'production' | 'development';
       SERVER_PORT: string | undefined;
       SERVER_HOST: string | undefined;
+      SERVER_FRONTEND_PATH: string | undefined;
       SERVER_FILE_PATH: string | undefined;
       SERVER_EDITOR_PORT: string | undefined;
 

@@ -5,6 +5,7 @@ export interface Config {
     port: number;
     host: string;
     filePath: string;
+    frontendPath: string | null;
   };
 
   logger: {
@@ -30,6 +31,7 @@ export const defaultConfig: Config = {
     port: 4672, // ChatGPT(GPT-4, Browsing)의 추천을 받아 정해졌습니다
     host: 'localhost',
     filePath: '/files',
+    frontendPath: null,
   },
   logger: {
     timestampFormat: 'YYYY-MM-DD HH:mm:ss',

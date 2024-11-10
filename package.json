@@ -8,6 +8,8 @@
     "dev:frontend": "npm run dev -w @suyong/memo-frontend",
     "dev:backend": "npm run dev -w @suyong/memo-backend",
     "dev:core": "npm run dev -w @suyong/memo-core",
+    "build": "npm run build -w @suyong/memo-core && npm run build -w @suyong/memo-frontend && npm run build -w @suyong/memo-backend",
+    "start": "npm start -w @suyong/memo-backend",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "devDependencies": {
@@ -23,8 +25,5 @@
     "packages/frontend",
     "packages/backend",
     "packages/core"
-  ],
-  "dependencies": {
-    "@suyong/memo-core": "^1.0.0"
-  }
+  ]
 }

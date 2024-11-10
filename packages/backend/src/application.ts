@@ -20,6 +20,7 @@ import bodyParser from 'body-parser';
 import { getModelList } from './models/model';
 import { getDatabaseExtension } from './domains/memos/services/database';
 import { getAuthEvent } from './domains/memos/services/auth';
+import path from 'node:path';
 
 class Application {
   private app: Express | null = null;
@@ -34,13 +35,17 @@ class Application {
   }
 
   loadConfig() {
-    dotenv.config();
+    let path = '.env';
+    if (process.env.NODE_ENV) path = `.env.${process.env.NODE_ENV}`;
+
+    dotenv.config({ path });
 
     const customConfig: Object.Partial<Config, 'deep'> = {
       server: {
         host: process.env.SERVER_HOST,
         port: Number.isFinite(Number(process.env.SERVER_PORT)) ? Number(process.env.SERVER_PORT) : undefined,
         filePath: process.env.SERVER_FILE_PATH,
+        frontendPath: process.env.SERVER_FRONTEND_PATH,
       },
       logger: {
         path: process.env.LOGGER_PATH,
@@ -67,6 +72,7 @@ class Application {
   initLogger(logger: Logger) {
     this.logger = logger;
 
+    this.logger.v('config\n', JSON.stringify(this._config, null, 2));
     this.logger.v('Logger is initialized');
   }
 
@@ -109,6 +115,13 @@ class Application {
     this.app.use(LogHandler);
 
     this.app.use('/api', getRouter());
+    if (this.config.server.frontendPath) {
+      const basePath = this.config.server.frontendPath;
+      this.app.use(express.static(basePath));
+      this.app.get(/^\/(?!api$|api\/.*|assets$|assets\/.*)/, (_, res) => {
+        res.sendFile(path.resolve(basePath, 'index.html'));
+      });
+    }
 
     this.app.use(ExceptionHandler);
   }

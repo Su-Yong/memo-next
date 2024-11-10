@@ -3,7 +3,7 @@ import { Allotment } from 'allotment';
 import MemoHeader from '../components/MemoHeader';
 import Editor from '../containers/Editor';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchWorkspace } from '../api/workspace';
+import { createWorkspace, fetchWorkspace } from '../api/workspace';
 import { useCallback, useState } from 'react';
 import { uploadFile } from '../api/file';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
@@ -16,6 +16,7 @@ import { SELECTED_MEMO_ID } from '../store/memo';
 import { THEME_MODE } from '../store/preference';
 import { WorkspaceResponse as Workspace } from '@suyong/memo-core';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '../components/common/Dialog.tsx';
 
 const MemoPage = () => {
   const queryClient = useQueryClient();
@@ -26,6 +27,9 @@ const MemoPage = () => {
   const setAccessToken = useSetAtom(ACCESS_TOKEN);
   const setRefreshToken = useSetAtom(REFRESH_TOKEN);
 
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [workspaceName, setWorkspaceName] = useState('');
+
   const { data: workspaces } = useQuery(['my-workspaces'], async () => fetchWorkspace());
   const profileMutation = useMutation(async (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -35,6 +39,13 @@ const MemoPage = () => {
 
     await updateUser({ profile: profileUrl });
     await queryClient.invalidateQueries(['client-user']);
+  });
+  const addWorkspace = useMutation(async (name: string) => {
+    await createWorkspace({ name });
+
+    setWorkspaceName('');
+    setWorkspaceOpen(false);
+    await queryClient.invalidateQueries(['my-workspaces']);
   });
 
   const [selectedWorkspace, setWorkspace] = useState<Workspace | null>(null);
@@ -90,11 +101,36 @@ const MemoPage = () => {
               </i>
             </button>
           ))}
-          <button className={'btn-text btn-icon flex'}>
+          <button className={'btn-text btn-icon flex'} onClick={() => setWorkspaceOpen(true)}>
             <i className={'material-symbols-outlined icon'}>
               add
             </i>
           </button>
+          <Dialog
+            open={workspaceOpen}
+            onClose={() => setWorkspaceOpen(false)}
+            title={'워크스페이스 이름을 입력해주세요'}
+            buttons={[
+              {
+                name: '닫기',
+                onClick: () => setWorkspaceOpen(false),
+              },
+              {
+                type: 'positive',
+                name: '생성',
+                icon: 'add',
+                onClick: () => addWorkspace.mutate(workspaceName),
+              }
+            ]}
+          >
+            <input
+              required
+              type={'text'}
+              className={'input'}
+              value={workspaceName}
+              onChange={(event) => setWorkspaceName(event.currentTarget.value)}
+            />
+          </Dialog>
           <div className={'flex-1'}></div>
           <div className={'bg-gray-300 dark:bg-gray-700 px-3 h-[1px]'}></div>
           <button className={'relative btn-text btn-icon flex'} onClick={onToggleTheme}>
